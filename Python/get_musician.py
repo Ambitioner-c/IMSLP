@@ -70,7 +70,7 @@ class Crawler:
 
 def save(musics, file):
     with open(file, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(musics))
+        f.write(json.dumps(musics, ensure_ascii=False))
 
 
 def statistic(musics):
@@ -92,8 +92,8 @@ def main():
     category = 'Beethoven,_Ludwig_van'
 
     crawler = Crawler("https://cn.imslp.org/wiki/Category:" + category, '../Data/Composer/Beethoven,_Ludwig_van.html')
-    # crawler.set_html()
-    crawler.get_html()
+    crawler.set_html()
+    # crawler.get_html()
     info = crawler.parse()
 
     save(info, '../Data/Result/Info/' + category + '.json')

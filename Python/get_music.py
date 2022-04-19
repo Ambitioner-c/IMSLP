@@ -5,6 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import json
+from time import sleep
+from random import randint
 
 
 Headers = {
@@ -35,20 +37,26 @@ class Crawler:
 
         html = BeautifulSoup(self.HTML, 'lxml')
 
-        #
+        # 头部
         header = html.findAll('div', attrs={'class': 'wp_header'})[0]
 
         # 作品
         musics = {}
-        divs = html.findAll('div', attrs={'lang': 'zh', 'dir': 'ltr'})
-        for div in divs:
-            script = div.findAll('script')[1]
-            p = re.findall(r'catpagejs,(.+?)\);if', str(script))[0]
-            p = json.loads(p)
+        divs = html.findAll('div', attrs={'class': re.compile(r'we_fileblock_2')})
 
-            for index in p:
-                musics[index] = p[index]
-        info['production'] = musics
+        prefs = []
+        for div in divs:
+            imslp_id = re.findall(r'id="IMSLP(.+?)"', str(div))[0]
+
+            url = 'https://cn.imslp.org/wiki/Special:IMSLPDisclaimerAccept/' + str(imslp_id)
+            _html = requests.get(url, headers=Headers)
+            _html = _html.text
+            pref = re.findall(r'data-id="(.+?)"', str(_html))[0].replace('&#58;', ':')
+            prefs.append(pref)
+
+            sleep(randint(1, 3))
+
+        info['prefs'] = prefs
 
         # 分类
         categories = []
@@ -67,7 +75,7 @@ class Crawler:
 
 def save(musics, file):
     with open(file, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(musics))
+        f.write(json.dumps(musics, ensure_ascii=False))
 
 
 def statistic(musics):
@@ -88,14 +96,14 @@ def statistic(musics):
 def main():
     music = 'Abbé_Stadler,_WoO_178_(Beethoven,_Ludwig_van)'
 
-    crawler = Crawler("https://cn.imslp.org/wiki/" + music, '../Data/Music/Abbé_Stadler,_WoO_178_(Beethoven,_Ludwig_van).html')
+    crawler = Crawler("https://cn.imslp.org/wiki/" + music, '../Data/Music/' + music + '.html')
     crawler.set_html()
     # crawler.get_html()
     info = crawler.parse()
 
     save(info, '../Data/Result/Music/' + music + '.json')
 
-    statistic(info['production'])
+    statistic(info['prefs'])
 
 
 if __name__ == '__main__':

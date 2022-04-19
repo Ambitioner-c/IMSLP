@@ -44,7 +44,7 @@ class Crawler:
 
 def save(composers, file):
     with open(file, 'w', encoding='utf-8') as f:
-        f.write(json.dumps(composers))
+        f.write(json.dumps(composers, ensure_ascii=False))
 
 
 def statistic(composers):
@@ -65,11 +65,11 @@ def main():
     category = 'Composers'
 
     crawler = Crawler("https://cn.imslp.org/wiki/Category:" + category, '../Data/composers.html')
-    # composers.set_html()
-    crawler.get_html()
+    crawler.set_html()
+    # crawler.get_html()
     composers = crawler.parse()
 
-    # save(composers, '../Data/Result/composers.json')
+    save(composers, '../Data/Result/composers.json')
 
     statistic(composers['s1'])
 
